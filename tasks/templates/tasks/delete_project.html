@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Delete Project</h2>
+    <p>Are you sure you want to delete the project "{{ project.name }}"?</p>
+    <p>This action cannot be undone.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete Project</button>
+        <a href="{% url 'tasks:project_detail' project.pk %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
