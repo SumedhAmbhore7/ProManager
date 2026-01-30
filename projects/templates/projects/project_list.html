@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Projects{% endblock %}
+
+{% block content %}
+<h1>Projects</h1>
+<ul class="list-group">
+    {% for project in projects %}
+    <li class="list-group-item">
+        <a href="{% url 'project_detail' project.pk %}">{{ project.name }}</a>
+        <p>{{ project.description }}</p>
+    </li>
+    {% empty %}
+    <li class="list-group-item">No projects available.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

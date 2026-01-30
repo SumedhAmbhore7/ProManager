@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Task{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Create Task for {{ project.name }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+            {{ form.title }}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+            {{ form.description }}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.priority.id_for_label }}" class="form-label">{{ form.priority.label }}</label>
+            {{ form.priority }}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
+            {{ form.status }}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.assigned_to.id_for_label }}" class="form-label">{{ form.assigned_to.label }}</label>
+            {{ form.assigned_to }}
+        </div>
+        <button type="submit" class="btn btn-primary">Create Task</button>
+        <a href="{% url 'project_detail' project.pk %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
