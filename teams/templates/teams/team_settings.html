@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}"><i class="bi bi-house-door"></i> Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page"><i class="bi bi-gear"></i> Team Settings</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-5">
+        <div class="col">
+            <div class="text-center">
+                <h1 class="display-4 fw-bold text-gradient mb-3"><i class="bi bi-people-fill"></i> {{ organization.name }}</h1>
+                <p class="lead text-muted">Manage your team members and track project progress</p>
+            </div>
+        </div>
+    </div>
+
+    {% if is_admin and invite_form %}
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-lg border-0 rounded-3 overflow-hidden">
+                <div class="card-header bg-gradient-primary text-white py-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-person-plus-fill fs-3 me-3"></i>
+                        <div>
+                            <h4 class="card-title mb-0">Invite New Member</h4>
+                            <small>Add a new team member to collaborate</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" action="{% url 'invite_member' %}">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="{{ invite_form.username.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="bi bi-person-circle"></i> Username
+                                </label>
+                                {{ invite_form.username }}
+                                {% if invite_form.username.errors %}
+                                    <div class="text-danger mt-1">{{ invite_form.username.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill">
+                                    <i class="bi bi-send-fill"></i> Send Invitation
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0 rounded-3 overflow-hidden h-100">
+                <div class="card-header bg-gradient-secondary text-white py-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-people-fill fs-3 me-3"></i>
+                        <div>
+                            <h4 class="card-title mb-0">Team Members</h4>
+                            <small>{{ members|length }} active member{{ members|length|pluralize }}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th scope="col" class="py-3 px-4"><i class="bi bi-person"></i> Username</th>
+                                    <th scope="col" class="py-3 px-4"><i class="bi bi-shield-check"></i> Role</th>
+                                    <th scope="col" class="py-3 px-4"><i class="bi bi-calendar-event"></i> Joined</th>
+                                    {% if is_admin %}<th scope="col" class="py-3 px-4"><i class="bi bi-gear"></i> Actions</th>{% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member in members %}
+                                <tr class="align-middle">
+                                    <td class="py-3 px-4 fw-semibold">{{ member.user.username }}</td>
+                                    <td class="py-3 px-4">
+                                        {% if member.role == 'admin' %}
+                                            <span class="badge bg-primary rounded-pill px-3 py-2">
+                                                <i class="bi bi-star-fill"></i> Administrator
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary rounded-pill px-3 py-2">
+                                                <i class="bi bi-person-fill"></i> Member
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 px-4 text-muted">{{ member.user.date_joined|date:"M d, Y" }}</td>
+                                    {% if is_admin %}
+                                    <td class="py-3 px-4">
+                                        {% if member.user != request.user %}
+                                            <button class="btn btn-outline-danger btn-sm rounded-pill" onclick="return confirm('Remove this member?')">
+                                                <i class="bi bi-person-dash"></i> Remove
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0 rounded-3 overflow-hidden mb-4">
+                <div class="card-header bg-gradient-info text-white py-4 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-bar-chart-line-fill fs-3 me-3"></i>
+                        <div>
+                            <h4 class="card-title mb-0">Task Progress</h4>
+                            <small>Overall project completion status</small>
+                        </div>
+                    </div>
+                    {% if is_admin %}
+                        <a href="{% url 'tasks:project_list' %}" class="btn btn-light btn-sm rounded-pill">
+                            <i class="bi bi-plus-circle-fill"></i> Assign Task
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body p-4">
+                    <div class="row mb-4">
+                        <div class="col text-center">
+                            <div class="display-4 fw-bold text-primary mb-2">{{ total_tasks }}</div>
+                            <small class="text-muted">Total Tasks</small>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-semibold"><i class="bi bi-check-circle-fill text-success"></i> Completed</span>
+                            <span class="text-muted">{{ completed_tasks }} ({{ completed_percent }}%)</span>
+                        </div>
+                        <div class="progress rounded-pill" style="height: 12px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ completed_percent }}%" aria-valuenow="{{ completed_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-semibold"><i class="bi bi-play-circle-fill text-warning"></i> In Progress</span>
+                            <span class="text-muted">{{ in_progress_tasks }} ({{ in_progress_percent }}%)</span>
+                        </div>
+                        <div class="progress rounded-pill" style="height: 12px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ in_progress_percent }}%" aria-valuenow="{{ in_progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-semibold"><i class="bi bi-circle-fill text-secondary"></i> To Do</span>
+                            <span class="text-muted">{{ todo_tasks }} ({{ todo_percent }}%)</span>
+                        </div>
+                        <div class="progress rounded-pill" style="height: 12px;">
+                            <div class="progress-bar bg-secondary" role="progressbar" style="width: {{ todo_percent }}%" aria-valuenow="{{ todo_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-lg border-0 rounded-3 overflow-hidden">
+                <div class="card-header bg-gradient-success text-white py-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-clock-history fs-3 me-3"></i>
+                        <div>
+                            <h4 class="card-title mb-0">Recent Tasks</h4>
+                            <small>Latest activity and updates</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for task in tasks|slice:":5" %}
+                        <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center border-0">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-task fs-5 me-3 text-primary"></i>
+                                <div>
+                                    <div class="fw-semibold">{{ task.title }}</div>
+                                    <small class="text-muted">{{ task.project.name }}</small>
+                                </div>
+                            </div>
+                            <span class="badge rounded-pill px-3 py-2 {% if task.status == 'DONE' %}bg-success{% elif task.status == 'IN_PROGRESS' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {% if task.status == 'DONE' %}<i class="bi bi-check-circle-fill"></i>{% elif task.status == 'IN_PROGRESS' %}<i class="bi bi-play-circle-fill"></i>{% else %}<i class="bi bi-circle-fill"></i>{% endif %}
+                                {{ task.get_status_display }}
+                            </span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item px-4 py-4 text-center text-muted border-0">
+                            <i class="bi bi-info-circle fs-1 mb-3 d-block"></i>
+                            <div>No tasks yet. Create your first task to get started!</div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.text-gradient {
+    background: linear-gradient(45deg, #007bff, #6610f2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+}
+
+.bg-gradient-secondary {
+    background: linear-gradient(45deg, #6c757d, #495057);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(45deg, #17a2b8, #117a8b);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(45deg, #28a745, #1e7e34);
+}
+
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+.btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}
